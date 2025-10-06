@@ -14,6 +14,7 @@ Route::get('dashboard', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/boards', [BoardController::class, 'index'])->name('boards.index');
+    Route::post('/boards', [BoardController::class, 'store'])->name('boards.store');
 });
 
 require __DIR__.'/settings.php';
