@@ -56,9 +56,9 @@ function submit(){
 
         <ul v-else class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <li v-for="b in props.boards" :key="b.id" class="rounded-2xl border bg-white p-4 shadow-sm text-black">
-                <div class="font-medium">
+                <a :href="`/boards/${b.id}`" class="underline">
                     {{ b.name }}
-                </div>
+                </a>
                 <div class="text-sm text-gray-500 mt-1">
                     Created {{ new Date(b.created_at).toLocaleDateString() }}
                 </div>

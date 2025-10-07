@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use App\Models\Board;
 
 class User extends Authenticatable
 {
@@ -50,6 +51,6 @@ class User extends Authenticatable
 
     public function boards(): HasMany
     {
-        return $this->hasMany(\App\Models\Board::class)->orderBy('position');
+        return $this->hasMany(Board::class)->orderBy('position');
     }
 }
