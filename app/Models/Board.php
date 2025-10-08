@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Column;
 use App\Models\Task;
+use App\Models\User;
 
 class Board extends Model
 {

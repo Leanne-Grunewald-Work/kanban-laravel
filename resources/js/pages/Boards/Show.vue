@@ -3,6 +3,16 @@ import { Head } from '@inertiajs/vue3'
 import { useForm } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
 import TaskAdd from '@/components/TaskAdd.vue'
+import SubtaskAdd from '@/components/SubtaskAdd.vue'
+
+type Subtask = {
+  id: number
+  title: string
+  description?: string | null
+  position: number
+  due_date?: string | null
+  is_completed: boolean
+}
 
 type Task = {
   id: number
@@ -10,6 +20,7 @@ type Task = {
   description?: string | null
   position: number
   due_date?: string | null
+  subtasks: Subtask[]
 }
 
 type Column = {
@@ -96,6 +107,8 @@ function addColumn(){
                 <div class="text-sm text-gray-500 mt-1">
                     {{ column.position }}
                 </div>
+
+                <!-- Task list -->
                 <ul class="space-y-2 mb-3">
                     <li v-for="task in column.tasks" :key="task.id" class="bg-white rounded-lg border p-3">
                         <p class="font-medium">
@@ -104,6 +117,28 @@ function addColumn(){
                         <p v-if="task.description" class="text-sm text-gray-600 whitespace-pre-line">
                             {{ task.description }}
                         </p>
+
+                        <!-- Subtask list -->
+                         <ul v-if="task.subtasks?.length" class="mt-2 space-y-1">
+                            <li v-for="subtask in task.subtasks" :key="subtask.id" class="flex items-start gap-2">
+                                <input type="checkbox" :checked="subtask.is_completed" class="mt-1" />
+                                <div>
+                                    <p class="text-sm">
+                                        {{ subtask.title }}
+                                    </p>
+                                    <p v-if="subtask.description" class="text-xs text-gray-600 whitespace-pre-line">
+                                        {{ subtask.description }}
+                                    </p>
+                                </div>
+                            </li>
+                         </ul>
+                         <!-- Add Subtask -->
+                        <SubtaskAdd 
+                            :board-id="props.board.id"
+                            :column-id="column.id"
+                            :task-id="task.id"
+                        />
+
                     </li>
                 </ul>
 

@@ -51,8 +51,9 @@ class BoardController extends Controller
     public function show(Board $board)
     {
         $board->load([
-            'columns' => fn($q) => $q->orderBy('position'),
-            'columns.tasks' => fn($q) => $q->orderBy('position'),
+            'columns'                   => fn($q) => $q->orderBy('position'),
+            'columns.tasks'             => fn($q) => $q->orderBy('position'),
+            'columns.tasks.subtasks'    => fn($q) => $q->orderBy('position'),
         ]);
 
         return Inertia::render('Boards/Show', [

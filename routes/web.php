@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BoardController;
 use App\Http\Controllers\ColumnController;
+use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,7 +22,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/boards/{board}', [BoardController::class, 'show'])->name('boards.show');
     Route::post('/boards/{board}/columns', [ColumnController::class, 'store'])->name('columns.store');
 
-    Route::post('/boards/{board}/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.show');
+    Route::post('/boards/{board}/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.store');
+
+    Route::post('/boards/{board}/columns/{column}/tasks/{task}/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
 });
 
 require __DIR__.'/settings.php';
