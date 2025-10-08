@@ -14,7 +14,10 @@ class BoardController extends Controller
 {
     public function index(Request $request): Response
     {
-        $boards = $request->user()
+        $user = $request->user();
+        $selectedBoard = $request->integer('selectedBoard');
+
+        $boards = $user
             ->boards()
             ->select('id', 'name', 'position', 'created_at')
             ->orderBy('position')
@@ -22,6 +25,16 @@ class BoardController extends Controller
 
         return Inertia::render('Boards/Index', [
             'boards' => $boards,
+            'selectedBoard' => fn() => $selectedBoard
+                ? Board::where('user_id', $user->id)
+                    ->where('id', $selectedBoard)
+                    ->with([
+                        'columns'                   => fn($q) => $q->orderBy('position'),
+                        'columns.tasks'             => fn($q) => $q->orderBy('position'),
+                        'columns.tasks.subtasks'    => fn($q) => $q->orderBy('position'),
+                    ])
+                    ->first()
+                : null,
         ]);
     }
 
@@ -36,15 +49,15 @@ class BoardController extends Controller
             ],
         ]);
 
-        $nextPosition = (int) Board::where('user_id', $user->id)->max('position') + 1;
+        $nextPosition = (int) (($user->boards()->max('position')) ?? 0) + 1;
 
-        Board::create([
+        $board = Board::create([
             'user_id'   => $user->id,
             'name'      => $validated['name'],
             'position'  => $nextPosition,
         ]);
 
-        return redirect()->route('boards.index')->with('success', 'Board Created');
+        return redirect()->route('boards.index', ['selectedBoard' => $board->id])->with('success', 'Board Created');
 
     }
 

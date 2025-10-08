@@ -11,15 +11,17 @@ const form = useForm({ title: '', description: '', due_date: ''})
 
 function submit(){
     form.post(`/boards/${props.boardId}/columns/${props.columnId}/tasks/${props.taskId}/subtasks`, {
+        only: ['selectedBoard'],
         onSuccess: () => form.reset('title', 'description', 'due_date'),
         preserveScroll: true,
+        preserveState: true,
     })
 }
 
 </script>
 
 <template>
-    <form @submit.prevent="submit" class="space-y-2 mt-3">
+    <form @submit.prevent="submit" class="space-y-2 mt-3 text-black">
         <input v-model="form.title" type="text" placeholder="Subtask title"
                 class="w-full rounded-lg border px-3 py-2" />
         <textarea v-model="form.description" rows="2" placeholder="Description (optional)"
