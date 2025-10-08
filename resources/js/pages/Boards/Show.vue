@@ -2,12 +2,22 @@
 import { Head } from '@inertiajs/vue3'
 import { useForm } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
+import TaskAdd from '@/components/TaskAdd.vue'
+
+type Task = {
+  id: number
+  title: string
+  description?: string | null
+  position: number
+  due_date?: string | null
+}
 
 type Column = {
     id: number
     name: string
     position: number
     created_at: string
+    tasks: Task[]
 }
 
 type Board = {
@@ -26,6 +36,7 @@ function addColumn(){
         preserveScroll: true,
     })
 }
+
 </script>
 
 <template>
@@ -85,8 +96,25 @@ function addColumn(){
                 <div class="text-sm text-gray-500 mt-1">
                     {{ column.position }}
                 </div>
+                <ul class="space-y-2 mb-3">
+                    <li v-for="task in column.tasks" :key="task.id" class="bg-white rounded-lg border p-3">
+                        <p class="font-medium">
+                            {{ task.title }}
+                        </p>
+                        <p v-if="task.description" class="text-sm text-gray-600 whitespace-pre-line">
+                            {{ task.description }}
+                        </p>
+                    </li>
+                </ul>
+
+                <!-- Add Task -->
+                <TaskAdd 
+                    :board-id="props.board.id"
+                    :column-id="column.id"
+                />
             </li>
         </ul>
 
     </div>
+    
 </template>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Column;
+use App\Models\Task;
 
 class Board extends Model
 {
@@ -23,5 +24,10 @@ class Board extends Model
     public function columns(): HasMany
     {
         return $this->hasMany(Column::class)->orderBy('position');
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 }
