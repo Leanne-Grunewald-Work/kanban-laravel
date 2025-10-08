@@ -4,6 +4,21 @@ import { useForm } from '@inertiajs/vue3'
 import { Link } from '@inertiajs/vue3'
 import TaskAdd from '@/components/TaskAdd.vue'
 import SubtaskAdd from '@/components/SubtaskAdd.vue'
+import { router } from '@inertiajs/vue3'
+
+function updateSubtaskCompleted(boardId: number, columnId: number, taskId: number, subtaskId: number, value: boolean)
+{
+    router.patch(
+        `/boards/${boardId}/columns/${columnId}/tasks/${taskId}/subtasks/${subtaskId}`,
+        {
+            is_completed: value
+        },
+        {
+            preserveScroll: true,
+            preserveState: true,
+        }
+    )
+}
 
 type Subtask = {
   id: number
@@ -121,7 +136,7 @@ function addColumn(){
                         <!-- Subtask list -->
                          <ul v-if="task.subtasks?.length" class="mt-2 space-y-1">
                             <li v-for="subtask in task.subtasks" :key="subtask.id" class="flex items-start gap-2">
-                                <input type="checkbox" :checked="subtask.is_completed" class="mt-1" />
+                                <input type="checkbox" :checked="subtask.is_completed" class="mt-1" @change="updateSubtaskCompleted(props.board.id, column.id, task.id, subtask.id, ($event.target as HTMLInputElement).checked)" />
                                 <div>
                                     <p class="text-sm">
                                         {{ subtask.title }}

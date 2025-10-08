@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Board;
 use App\Models\Column;
+use App\Models\Subtask;
 use App\Models\Task;
 
 class SubtaskController extends Controller
@@ -41,5 +42,25 @@ class SubtaskController extends Controller
         return back();
 
 
+    }
+
+    public function update(Request $request, Board $board, Column $column, Task $task, Subtask $subtask)
+    {
+        // Make sure URL hierarchy matches DB hierarchy
+        if ($task->column_id !== $column->id || $column->board_id !== $board->id || $subtask->task_id !== $task->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'is_completed'  => [
+                'nullable', 'boolean',
+            ],
+        ]);
+
+        $subtask->update([
+            'is_completed' => $validated['is_completed'],
+        ]);
+
+        return back();
     }
 }

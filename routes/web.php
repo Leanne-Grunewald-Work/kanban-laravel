@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/boards/{board}/columns/{column}/tasks', [TaskController::class, 'store'])->name('tasks.store');
 
     Route::post('/boards/{board}/columns/{column}/tasks/{task}/subtasks', [SubtaskController::class, 'store'])->name('subtasks.store');
+
+    Route::patch('/boards/{board}/columns/{column}/tasks/{task}/subtasks/{subtask}', [SubtaskController::class, 'update'])->name('subtasks.update');
 });
 
 require __DIR__.'/settings.php';
