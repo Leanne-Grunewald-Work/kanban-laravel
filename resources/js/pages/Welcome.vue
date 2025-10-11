@@ -3,13 +3,20 @@
     import { reactive } from 'vue'
     import { computed } from 'vue';
 
+    // Boards
+    type Board = {
+        id:         number
+        name:       string
+        position:   number
+        created_at: string
+    }
+
+    const props = defineProps<{
+        boards: Board[]
+    }>()
+
     const state = reactive({
-        boards: [
-            { id: 1, name: 'Platform Launch'},
-            { id: 2, name: 'Marketing Plan'},
-            { id: 3, name: 'Roadmap'},
-        ] as { id: number; name: string }[],
-        selectedBoardId: 1 as number | null,
+        selectedBoardId: props.boards.length > 0 ? props.boards[0].id : null,
     })
 
     function selectBoard(id:number) {
@@ -17,7 +24,7 @@
     }
 
     const selectedBoard = computed(() => 
-        state.boards.find(board => board.id === state.selectedBoardId) ?? null
+        props.boards.find(board => board.id === state.selectedBoardId) ?? null
     )
 
 </script>
@@ -33,11 +40,11 @@
             </div>
 
             <p class="mb-3 px-4 text-[11px] font-semibold tracking-[0.2em] text-slate-500">
-                ALL BOARDS ({{ state.boards.length }})
+                ALL BOARDS ({{ props.boards.length }})
             </p>
 
             <nav class="space-y-2" role="navigation" aria-label="Boards">
-                <button v-for="board in state.boards" :key="board.id" @click="selectBoard(board.id)" class="group w-full flex items-center gap-3 rounded-r-full px-4 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" :class="state.selectedBoardId === board.id ? 'bg-[#635FC7] text-white hover:bg-[#A8A4FF]' : 'text-slate-600 hover:bg-[#F4F7FD]'" :aria-current="state.selectedBoardId === board.id ? 'page' : undefined">
+                <button v-for="board in props.boards" :key="board.id" @click="selectBoard(board.id)" class="group w-full flex items-center gap-3 rounded-r-full px-4 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" :class="state.selectedBoardId === board.id ? 'bg-[#635FC7] text-white hover:bg-[#A8A4FF]' : 'text-slate-600 hover:bg-[#F4F7FD]'" :aria-current="state.selectedBoardId === board.id ? 'page' : undefined">
                     <img src="/images/icon-board.svg" alt="" class="h-5 w-5" />
                     <span class="truncate">
                         {{ board.name }}

@@ -12,6 +12,19 @@ use Illuminate\Validation\Rule;
 
 class BoardController extends Controller
 {
+    public function welcome(Request $request)
+    {
+        $user = $request->user();
+
+        $boards = Board::where('user_id', $user->id)
+            ->orderBy('position')
+            ->get(['id', 'name', 'position', 'created_at']);
+
+        return Inertia::render('Welcome', [
+            'boards' => $boards,
+        ]);
+    }
+
     public function index(Request $request): Response
     {
         $user = $request->user();
