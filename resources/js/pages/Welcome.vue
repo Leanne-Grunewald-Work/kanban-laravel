@@ -1,7 +1,10 @@
 <script setup lang="ts">
+
     import { Head } from '@inertiajs/vue3'
     import { reactive } from 'vue'
     import { computed } from 'vue';
+    import { ref } from 'vue';
+    import { nextTick } from 'vue';
 
     // Boards
     type Board = {
@@ -27,12 +30,26 @@
         props.boards.find(board => board.id === state.selectedBoardId) ?? null
     )
 
+    const showCreateBoard = ref(false)
+    const firstFieldRef = ref<HTMLInputElement | null>(null)
+
+    function openCreateBoard()
+    {
+        showCreateBoard.value = true
+        nextTick(() => firstFieldRef.value?.focus())
+    }
+
+    function closeCreateBoard()
+    {
+        showCreateBoard.value = false
+    }
+
 </script>
 
 <template>
     <Head title="Kanban" />
 
-    <div class="min-h-screen grid grid-cols-12 gap-0 bg-white text-slate-900">
+    <div class="min-h-screen grid grid-cols-12 gap-0 bg-white text-slate-900" :class="{ 'overflow-hidden': showCreateBoard }">
 
         <aside class="col-span-12 md:col-span-4 lg:col-span-3 border-r border-slate-200 p-6 bg-white flex flex-col">
             <div class="mb-8 flex items-center gap-3 px-4">
@@ -52,7 +69,7 @@
                 </button>
             </nav>
 
-            <button type="button" class="mt-2 w-full flex items-center gap-3 rounded-r-full px-4 py-2 text-[#635FC7] hover:bg-[#F4F7FD] transition focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]">
+            <button type="button" class="mt-2 w-full flex items-center gap-3 rounded-r-full px-4 py-2 text-[#635FC7] hover:bg-[#F4F7FD] transition focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" @click="openCreateBoard()" aria-haspopup="dialog">
                 <img src="/images/icon-board.svg" alt="" class="h-5 w-5" />
                 <span class="truncate">
                     + Create New Board
@@ -116,7 +133,74 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Board Modal -->
+            <div v-if="showCreateBoard" class="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="createBoardTitle">
+                <div class="absolute inset-0 bg-black/40">
+                </div>
+
+                <div class="absolute inset-0 grid place-items-center p-4" @click.self="closeCreateBoard">
+                    <div class="w-full max-w-xl rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+                
+                        <div class="flex items-start justify-between p-6">
+                            <h2 id="createBoardTitle" class="text-lg font-semibold text-slate-900">
+                                Add New Board
+                            </h2>
+                            <button type="button" class="rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" @click="closeCreateBoard()" aria-label="Close">
+                                <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
+                            </button>
+                        </div>
+
+                        <div class="px-6 pb-6 space-y-5">
+                            <div>
+                                <label for="boardNameInput" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Name
+                                </label>
+                                <input id="boardNameInput" ref="firstFieldRef" type="text" placeholder="e.g. Web Design" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                            </div>
+
+                            <div>
+                                <p class="block text-sm font-medium text-slate-700 mb-2">
+                                    Columns
+                                </p>
+                                <div class="space-y-3">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" value="Todo" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                                    
+                                        <button type="button" class="shrink-0 rounded-md p-2">
+                                            <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
+                                        </button>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" value="Doing" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                                        <button type="button" class="shrink-0 rounded-md p-2">
+                                            <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="mt-3 w-full rounded-2xl bg-[#F4F7FD] px-4 py-2 text-sm font-medium text-[#635FC7] hover:bg-[#E9ECFB] focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]">
+                                    + Add New Column
+                                </button>
+
+                            </div>
+                           
+                        </div>
+
+                        <div class="px-6 pb-6">
+                            <button type="button" class="w-full rounded-2xl bg-[#635FC7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7B77FF] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]">
+                                Create New Board
+                            </button>
+                        </div>
+                        
+                    </div>
+                    
+                </div>
+            </div>
         </main>
 
     </div>
+
+    
 </template>
