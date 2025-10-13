@@ -9,6 +9,7 @@ use Inertia\Response;
 use Illuminate\Http\Request;
 use App\Models\Board;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class BoardController extends Controller
 {
@@ -63,21 +64,39 @@ class BoardController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'name' => [
+            'name'      =>  [
                 'required', 'string', 'max:100',
                 Rule::unique('boards', 'name')->where(fn ($q) => $q->where('user_id', $user->id)),
             ],
+            'columns'   =>  ['nullable', 'array'],
+            'columns.*' =>  ['nullable', 'string', 'max:100'],
         ]);
 
-        $nextPosition = (int) (($user->boards()->max('position')) ?? 0) + 1;
+        return DB::transaction(function () use ($user, $validated)
+        {
+            $nextPosition = (int) (($user->boards()->max('position')) ?? 0) + 1;
 
-        $board = Board::create([
-            'user_id'   => $user->id,
-            'name'      => $validated['name'],
-            'position'  => $nextPosition,
-        ]);
+            $board = Board::create([
+                'user_id'   => $user->id,
+                'name'      => $validated['name'],
+                'position'  => $nextPosition,
+            ]);
 
-        return redirect()->route('home', ['selectedBoard' => $board->id])->with('success', 'Board Created');
+            $columns = collect($validated['columns'] ?? [])
+                ->map(fn($column) => trim((string) $column))
+                ->filter(fn($column) => $column !== '')
+                ->values();
+
+            foreach ($columns as $column => $columnName) 
+            {
+                $board->columns()->create([
+                    'name'      => $columnName,
+                    'position'  => $column + 1,   
+                ]);
+            }
+
+            return redirect()->route('home', ['selectedBoard' => $board->id])->with('success', 'Board Created');
+        });
 
     }
 

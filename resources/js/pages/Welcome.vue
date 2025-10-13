@@ -56,14 +56,21 @@
         showCreateBoard.value = false
     }
 
-    const createBoardForm = useForm({ name: '' })
+    const createBoardForm = useForm({ 
+        name: '',
+        columns: ['ToDo', 'Doing'],
+    })
 
     function submitCreateBoard()
     {
+        createBoardForm.columns = createBoardForm.columns
+            .map(column => (column ?? '').trim())
+            .filter(column => column.length > 0)
         createBoardForm.post('/boards', {
             preserveScroll: true,
             onSuccess: () => {
-                createBoardForm.reset('name')
+                createBoardForm.reset('name', 'columns')
+                createBoardForm.columns = ['ToDo', 'Doing']
                 closeCreateBoard()
             }
         })
@@ -192,25 +199,27 @@
                                     Columns
                                 </p>
                                 <div class="space-y-3">
-                                    <div class="flex items-center gap-2">
-                                        <input type="text" value="Todo" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                                    <div class="flex items-center gap-2" v-for="(column, columnId) in createBoardForm.columns" :key="columnId">
+                                        <input type="text" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" v-model="createBoardForm.columns[columnId]" placeholder="e.g. To Do" />
                                     
-                                        <button type="button" class="shrink-0 rounded-md p-2">
+                                        <button type="button" class="shrink-0 rounded-md p-2" @click="createBoardForm.columns.splice(columnId, 1)" :disabled="createBoardForm.columns.length <= 1" :title="createBoardForm.columns.length <= 1 ? 'At least one column' : 'Remove'">
                                             <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
                                         </button>
                                     </div>
 
-                                    <div class="flex items-center gap-2">
-                                        <input type="text" value="Doing" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
-                                        <button type="button" class="shrink-0 rounded-md p-2">
-                                            <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
-                                        </button>
-                                    </div>
                                 </div>
 
-                                <button type="button" class="mt-3 w-full rounded-2xl bg-[#F4F7FD] px-4 py-2 text-sm font-medium text-[#635FC7] hover:bg-[#E9ECFB] focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]">
+                                <button type="button" class="mt-3 w-full rounded-2xl bg-[#F4F7FD] px-4 py-2 text-sm font-medium text-[#635FC7] hover:bg-[#E9ECFB] focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" @click="createBoardForm.columns.push('')">
                                     + Add New Column
                                 </button>
+
+                                <p v-if="createBoardForm.errors['columns']" class="mt-2 text-sm text-red-600">
+                                    {{ createBoardForm.errors['columns'] }}
+                                </p>
+
+                                <p v-if="createBoardForm.errors['columns.*']" class="mt-2 text-sm text-red-600">
+                                    {{ createBoardForm.errors['columns.*'] }}
+                                </p>
 
                             </div>
                            
