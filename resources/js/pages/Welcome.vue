@@ -5,6 +5,8 @@
     import { computed } from 'vue';
     import { ref } from 'vue';
     import { nextTick } from 'vue';
+    import { useForm } from '@inertiajs/vue3'
+    import { watch } from 'vue';
 
     // Boards
     type Board = {
@@ -16,11 +18,21 @@
 
     const props = defineProps<{
         boards: Board[]
+        selectedBoardId?: number | null
     }>()
 
     const state = reactive({
-        selectedBoardId: props.boards.length > 0 ? props.boards[0].id : null,
+        selectedBoardId: props.selectedBoardId ?? (props.boards[0]?.id ?? null),
     })
+
+    watch(
+        () => props.selectedBoardId,
+        (newId) => {
+            if (newId && newId !== state.selectedBoardId) {
+                state.selectedBoardId = newId
+            }
+        }
+    )
 
     function selectBoard(id:number) {
         state.selectedBoardId = id
@@ -42,6 +54,19 @@
     function closeCreateBoard()
     {
         showCreateBoard.value = false
+    }
+
+    const createBoardForm = useForm({ name: '' })
+
+    function submitCreateBoard()
+    {
+        createBoardForm.post('/boards', {
+            preserveScroll: true,
+            onSuccess: () => {
+                createBoardForm.reset('name')
+                closeCreateBoard()
+            }
+        })
     }
 
 </script>
@@ -156,7 +181,10 @@
                                 <label for="boardNameInput" class="block text-sm font-medium text-slate-700 mb-1">
                                     Name
                                 </label>
-                                <input id="boardNameInput" ref="firstFieldRef" type="text" placeholder="e.g. Web Design" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                                <input id="boardNameInput" ref="firstFieldRef" type="text" placeholder="e.g. Web Design" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" v-model="createBoardForm.name"/>
+                                <p v-if="createBoardForm.errors.name" class="mt-1 text-sm text-red-600">
+                                    {{ createBoardForm.errors.name }}
+                                </p>
                             </div>
 
                             <div>
@@ -189,8 +217,8 @@
                         </div>
 
                         <div class="px-6 pb-6">
-                            <button type="button" class="w-full rounded-2xl bg-[#635FC7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7B77FF] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]">
-                                Create New Board
+                            <button type="button" class="w-full rounded-2xl bg-[#635FC7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7B77FF] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" :disabled="createBoardForm.processing" @click="submitCreateBoard">
+                                {{ createBoardForm.processing ? 'Creating...' : 'Create New Board' }}
                             </button>
                         </div>
                         

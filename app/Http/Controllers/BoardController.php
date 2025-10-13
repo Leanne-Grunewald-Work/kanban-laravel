@@ -20,8 +20,15 @@ class BoardController extends Controller
             ->orderBy('position')
             ->get(['id', 'name', 'position', 'created_at']);
 
+        $selectedId = $request->integer('selectedBoard');
+        if (!$selectedId && $boards->isNotEmpty()) 
+        {
+            $selectedId = (int) $boards->first()->id;
+        }
+
         return Inertia::render('Welcome', [
-            'boards' => $boards,
+            'boards'            => $boards,
+            'selectedBoardId'   => $selectedId,
         ]);
     }
 
@@ -70,7 +77,7 @@ class BoardController extends Controller
             'position'  => $nextPosition,
         ]);
 
-        return redirect()->route('boards.index', ['selectedBoard' => $board->id])->with('success', 'Board Created');
+        return redirect()->route('home', ['selectedBoard' => $board->id])->with('success', 'Board Created');
 
     }
 
