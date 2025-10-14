@@ -103,6 +103,59 @@
     const hasSelectedBoard = computed(() => !!selectedBoard.value)
     const hasColumns = computed(() => ((selectedBoard.value?.columns?.length) || 0) > 0)
 
+    // Columns
+    const showAddColumn = ref(false)
+    const firstColumnFieldRef = ref<HTMLInputElement | null>(null)
+
+    const addColumnForm = reactive({
+        name: '',
+        colourMode: 'preset' as 'preset' | 'custom',
+        preset: '#49C4E5',
+        custom: '#635FC7'
+    })
+
+    // TEMP COLOURS
+    const COLOUR_SWATCHES = [
+        { name: 'Cyan', value: '#49C4E5'},
+        { name: 'Purple', value: '#8471F2'},
+        { name: 'Green', value: '#67E2AE'},
+        { name: 'Indigo', value: '#635FC7'},
+        { name: 'Orange', value: '#F59E0B'},
+        { name: 'Rose', value: '#F43F5E'},
+    ]
+
+    function openAddColumn()
+    {
+        showAddColumn.value = true
+        nextTick(() => firstColumnFieldRef.value?.focus())
+    }
+
+    function closeAddColumn()
+    {
+        showAddColumn.value = false
+        addColumnForm.name = ''
+        addColumnForm.colourMode = 'preset'
+        addColumnForm.preset = COLOUR_SWATCHES[0].value
+        addColumnForm.custom = '#635FC7'
+    }
+
+    // Validate Hex colour code like #RGB or #RRGGBB (case-insensitive)
+    const HEX_REG = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+    const chosenColour = computed(() => addColumnForm.colourMode === 'preset' ? addColumnForm.preset : (HEX_REG.test(addColumnForm.custom) ? addColumnForm.custom : '#000000'))
+
+    const canCreateColumn = computed(() => {
+        const hasName = addColumnForm.name.trim().length > 0
+        const colourOK = addColumnForm.colourMode === 'preset' ? true : HEX_REG.test(addColumnForm.custom.trim())
+        return hasName && colourOK
+    })
+
+    function submitAddColumn()
+    {
+        if (!canCreateColumn.value) return
+
+        closeAddColumn()
+    }
+
 </script>
 
 <template>
@@ -195,11 +248,11 @@
                         </div>
 
                         <div class="rounded-xl bg-[#F4F7FD] p-4 text-center text-slate-500">
-                        No tasks yet
+                            No tasks yet
                         </div>
                     </div>
 
-                   <button type="button" class="min-w-[280px] rounded-xl bg-[#F4F7FD] text-[#635FC7] font-semibold text-sm grid place-items-center hover:opacity-80">
+                   <button type="button" class="min-w-[280px] rounded-xl bg-[#F4F7FD] text-[#635FC7] font-semibold text-sm grid place-items-center hover:opacity-80" @click="openAddColumn()">
                         + Add New Column
                     </button>
 
@@ -210,7 +263,7 @@
                         <h2 class="text-xl font-semibold">
                             This board is empty. Create a new column to get started.
                         </h2>
-                        <button type="button" class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                        <button type="button" class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700" @click="openAddColumn()">
                             + Add New Column
                         </button>
                     </div>
@@ -292,6 +345,81 @@
                     </div>
                     
                 </div>
+            </div>
+
+            <!-- Column Modal -->
+            <div v-if="showAddColumn" class="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="addColumnTitle">
+                <div class="absolute inset-0 bg-black/40">
+                </div>
+
+                <div class="absolute inset-0 grid place-items-center p-4" @click.self="closeAddColumn">
+                    <div class="w-full max-w-xl rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+                        <div class="flex items-start justify-between p-6">
+                            <h2 id="addColumnTitle" class="text-lg font-semibold text-slate-900">
+                                Add New Column
+                            </h2>
+                             <button type="button" class="rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" @click="closeAddColumn()" aria-label="Close">
+                                <img src="/images/icon-cross.svg" alt="" class="h-3 w-3" />
+                            </button>
+                        </div>
+
+                        <div class="px-6 pb-6 space-y-5">
+                            <div>
+                                <label for="columnNameInput" class="block text-sm font-medium text-slate-700 mb-1">
+                                    Column Name
+                                </label>
+                                <input id="columnNameInput" ref="firstColumnFieldRef" type="text" v-model="addColumnForm.name" placeholder="e.g. To Do" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <p class="block text-sm font-medium text-slate-700">
+                                    Colour
+                                </p>
+                                <div class="flex items-center gap-4 text-sm">
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="radio" value="preset" v-model="addColumnForm.colourMode" />
+                                        Preset
+                                    </label>
+                                    <label class="inline-flex items-center gap-2">
+                                        <input type="radio" value="custom" v-model="addColumnForm.colourMode" />
+                                        Custom
+                                    </label>
+                                </div>
+                                <div v-if="addColumnForm.colourMode === 'preset'" class="grid grid-cols-6 gap-2">
+                                    <button v-for="colour in COLOUR_SWATCHES" :key="colour.value" type="button" class="group relative rounded-xl border p-2 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" :class="addColumnForm.preset === colour.value ? 'border-[#635FC7]' : 'border-slate-200'" @click="addColumnForm.preset = colour.value" :aria-pressed="addColumnForm.preset === colour.value">
+                                        <span class="block h-5 w-5 rounded-full mx-auto" :style="{ backgroundColor: colour.value}">
+                                        </span>
+                                        <span class="mt-1 block text-[11px] text-slate-600 text-center truncate">
+                                            {{ colour.name }}
+                                        </span>
+                                    </button>
+                                </div>
+                                <div v-else class="flex items-center gap-3">
+                                    <input type="text" v-model="addColumnForm.custom" placeholder="#635FC7" class="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" />
+                                    <span class="inline-block h-6 w-6 rounded-full border" :style="{ backgroundColor: HEX_REG.test(addColumnForm.custom) ? addColumnForm.custom : '#FFFFFF'}">
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center gap-2 pt-2">
+                                    <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: chosenColour }">
+                                    </span>
+                                    <span class="text-xs text-slate-500">
+                                        Preview = {{ chosenColour }}
+                                    </span>
+                                </div>
+
+                                <div class="px-6 pb-6">
+                                    <button type="button" class="w-full rounded-2xl bg-[#635FC7] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7B77FF] disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[#A8A4FF]" :disabled="!canCreateColumn" @click="submitAddColumn">
+                                        Create Column
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    
+                    </div>
+                </div>
+
             </div>
         </main>
 
