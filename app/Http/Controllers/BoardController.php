@@ -27,9 +27,18 @@ class BoardController extends Controller
             $selectedId = (int) $boards->first()->id;
         }
 
+        $selectedBoard = null;
+        if ($selectedId)
+        {
+            $selectedBoard = Board::where('user_id', $user->id)
+                ->where('id', $selectedId)
+                ->with(['columns' => fn($q) => $q->orderBy('position')])
+                ->first();
+        }
+
         return Inertia::render('Welcome', [
             'boards'            => $boards,
-            'selectedBoardId'   => $selectedId,
+            'selectedBoard'     => $selectedBoard,
         ]);
     }
 

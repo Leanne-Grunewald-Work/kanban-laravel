@@ -7,6 +7,7 @@
     import { nextTick } from 'vue';
     import { useForm } from '@inertiajs/vue3'
     import { watch } from 'vue';
+    import { router } from '@inertiajs/vue3';
 
     // Boards
     type Board = {
@@ -18,29 +19,52 @@
 
     const props = defineProps<{
         boards: Board[]
-        selectedBoardId?: number | null
+        selectedBoard?: {
+            id:         number
+            name:       string
+            columns:    {
+                id:         number
+                name:       string
+                position:   number
+            }[]
+        } | null
     }>()
 
     const state = reactive({
-        selectedBoardId: props.selectedBoardId ?? (props.boards[0]?.id ?? null),
+        selectedBoardId: props.selectedBoard?.id ?? (props.boards[0]?.id ?? null),
     })
 
-    watch(
+    /**watch(
         () => props.selectedBoardId,
         (newId) => {
             if (newId && newId !== state.selectedBoardId) {
                 state.selectedBoardId = newId
             }
         }
-    )
+    )**/
 
     function selectBoard(id:number) {
         state.selectedBoardId = id
+        router.get('/', { selectedBoard: id }, 
+            {
+                only: ['selectedBoard'],
+                preserveScroll:  true,
+                preserveState: true,
+            }
+        )
     }
 
-    const selectedBoard = computed(() => 
+    /**const selectedBoard = computed(() => 
         props.boards.find(board => board.id === state.selectedBoardId) ?? null
-    )
+    )**/
+    const selectedBoard = ref(props.selectedBoard ?? null)
+    watch(() => props.selectedBoard, (val) => { 
+        selectedBoard.value = val 
+        if (val?.id && val.id !== state.selectedBoardId)
+        {
+            state.selectedBoardId = val.id
+        }
+    })
 
     const showCreateBoard = ref(false)
     const firstFieldRef = ref<HTMLInputElement | null>(null)
@@ -75,6 +99,9 @@
             }
         })
     }
+
+    const hasSelectedBoard = computed(() => !!selectedBoard.value)
+    const hasColumns = computed(() => ((selectedBoard.value?.columns?.length) || 0) > 0)
 
 </script>
 
@@ -155,15 +182,46 @@
                 </div>
             </div>
 
-            <div class="h-[70vh] grid place-items-center">
-                <div class="text-center max-w-md">
-                    <h2 class="text-xl font-semibold">
-                        This board is empty. Create a new column to get started.
-                    </h2>
-                    <button type="button" class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+            <div class="pb-6">
+                <div v-if="hasSelectedBoard && hasColumns" class="flex gap-6 overflow-x-auto" :key="selectedBoard?.id">
+                    <div v-for="column in selectedBoard.columns" :key="column.id" class="min-w-[280px]">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="h-3 w-3 rounded-full"
+                                    :style="{ backgroundColor: ['#49C4E5', '#8471F2', '#67E2AE'][(((column.position ?? 1) -1) % 3 + 3) % 3] }"></span>
+                                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                                    {{ column.name }}
+                                </h2>
+                            <span class="text-xs text-slate-400">(0)</span>
+                        </div>
+
+                        <div class="rounded-xl bg-[#F4F7FD] p-4 text-center text-slate-500">
+                        No tasks yet
+                        </div>
+                    </div>
+
+                   <button type="button" class="min-w-[280px] rounded-xl bg-[#F4F7FD] text-[#635FC7] font-semibold text-sm grid place-items-center hover:opacity-80">
                         + Add New Column
                     </button>
+
                 </div>
+
+                <div v-else-if="hasSelectedBoard" class="grid place-items-center h-[60vh]">
+                    <div class="text-center max-w-md">
+                        <h2 class="text-xl font-semibold">
+                            This board is empty. Create a new column to get started.
+                        </h2>
+                        <button type="button" class="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                            + Add New Column
+                        </button>
+                    </div>
+                </div>
+
+                <div v-else class="h-[70vh] grid place-items-center">
+                    <div class="text-center max-w-md">
+                        <h2 class="text-xl font-semibold">No board selected.</h2>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Board Modal -->
