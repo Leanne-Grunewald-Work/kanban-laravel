@@ -10,7 +10,7 @@ use App\Models\Task;
 
 class Column extends Model
 {
-    protected $fillable = ['board_id', 'name', 'position'];
+    protected $fillable = ['board_id', 'name', 'position', 'colour'];
 
     public function board(): BelongsTo
     {

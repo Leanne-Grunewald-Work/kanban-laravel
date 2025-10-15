@@ -11,10 +11,16 @@ class ColumnController extends Controller
 {
     public function store(Request $request, Board $board)
     {
+
+        abort_if($board->user_id !== $request->user()->id, 403);
+
         $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:255',
                 Rule::unique('columns', 'name')->where(fn ($q) => $q->where('board_id', $board->id)),
+            ],
+            'colour' => [
+                'nullable', 'regex:/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/'
             ],
         ]);
 
@@ -23,9 +29,10 @@ class ColumnController extends Controller
         $board->columns()->create([
             'name'      => $validated['name'],
             'position'  => $nextPosition,
+            'colour'    => $validated['colour'] ?? null,
         ]);
 
-        return back();
+        return back()->with(['success' => 'Column created']);
 
 
     }

@@ -151,10 +151,31 @@
 
     function submitAddColumn()
     {
-        if (!canCreateColumn.value) return
+        if (!canCreateColumn.value || !selectedBoard.value?.id) return
 
-        closeAddColumn()
+        const colour = addColumnForm.colourMode === 'preset' ? addColumnForm.preset : (HEX_REG.test(addColumnForm.custom) ? addColumnForm.custom : null)
+
+        addColumnPost.name = addColumnForm.name.trim()
+        addColumnPost.colour = colour
+
+        addColumnPost.post(`/boards/${selectedBoard.value.id}/columns`, {
+            only: ['selectedBoard'],
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                closeAddColumn()
+                addColumnForm.name = ''
+                addColumnForm.colourMode = 'preset'
+                addColumnForm.preset = COLOUR_SWATCHES[0].value
+                addColumnForm.custom = '#635FC7'
+            }
+        })
     }
+
+    const addColumnPost = useForm({
+        name: '',
+        colour: '' as string | null,
+    })
 
 </script>
 
@@ -240,7 +261,7 @@
                     <div v-for="column in selectedBoard.columns" :key="column.id" class="min-w-[280px]">
                         <div class="flex items-center gap-2 mb-4">
                             <span class="h-3 w-3 rounded-full"
-                                    :style="{ backgroundColor: ['#49C4E5', '#8471F2', '#67E2AE'][(((column.position ?? 1) -1) % 3 + 3) % 3] }"></span>
+                                    :style="{ backgroundColor: column.colour || ['#49C4E5', '#8471F2', '#67E2AE'][(((column.position ?? 1) -1) % 3 + 3) % 3] }"></span>
                                 <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">
                                     {{ column.name }}
                                 </h2>
